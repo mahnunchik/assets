@@ -4,12 +4,19 @@ path = require 'path'
 crypto = require 'crypto'
 mime = require 'mime'
 mkdirp = require 'mkdirp'
+_ = require 'underscore'
 
 class Assets
+  ###*
+   * @param options.assetsDir
+   * @param options.rootURI
+   * @param options.log
+  ###
   constructor: (@options={})->
     @assetsDir = @options.assetsDir || path.join(process.cwd(), 'assets')
     @rootURI = @options.rootURI || '/'
-    config.assets = {} unless config.assets?
+    @log = @options.log != false
+    config.setModuleDefaults('assets', {})
     unless fs.existsSync(@assetsDir)
       mkdirp.sync(@assetsDir)
 
@@ -18,6 +25,7 @@ class Assets
     base = path.basename(filename, ext)
     mimetype = options.mimetype || mime.lookup(ext)
     unless fs.existsSync(filename)
+      console.error("File '#{filename}' not exists") if @log
       return
     content = fs.readFileSync(filename)
     name = base
@@ -37,6 +45,10 @@ class Assets
       timestamp: Date.now()
 
   make: (key, filename, options)->
+    if _.isObject(key)
+      for _key, opts of key
+        @make(_key, opts.file, opts)
+      return
     unless filename?
       filename = key
     options = options || {}
@@ -47,7 +59,11 @@ class Assets
   _get: (key)->
     unless config.assets[key]
       @make(key)
-    return config.assets[key] || {}
+    asset = config.assets[key]
+    return asset if asset?
+    console.error("Asset not found, key: '#{key}'") if @log
+    return {}
+
   url: (key)->
     return @_get(key).url || ''
 

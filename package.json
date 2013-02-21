@@ -1,14 +1,19 @@
 {
   "name": "assets",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "index.js",
   "dependencies": {
-    "config": "*",
+    "config": "https://github.com/lorenwest/node-config/tarball/v0.4.18",
     "coffee-script": "*",
     "mime": "*",
-    "mkdirp": "*"
+    "mkdirp": "*",
+    "underscore": "*"
   },
   "devDependencies": {
     "mocha": "*"
+  },
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script --reporter spec --globals NODE_CONFIG",
+    "clean": "rm -rf ./assets && rm -rf ./public && rm -rf ./config"
   }
 }
