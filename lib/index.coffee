@@ -20,6 +20,11 @@ class Assets
     unless fs.existsSync(@assetsDir)
       mkdirp.sync(@assetsDir)
 
+  handle: (req, res, next) ->
+    res.locals
+      assets: @
+    next()
+
   _make: (key, filename, options)->
     ext  = path.extname(filename)
     base = path.basename(filename, ext)
