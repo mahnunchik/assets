@@ -28,17 +28,20 @@ class Assets
       console.error("File '#{filename}' not exists") if @log
       return
     content = fs.readFileSync(filename)
+    if mimetype == 'text/css'
+      content = @_fixCssUrl(filename, content)
     name = base
     if options.hash != false
       md5 = crypto.createHash('md5').update(content).digest('hex')
       name = "#{name}-#{md5}"
     name = "#{name}#{ext}"  
     dest = path.join @assetsDir, name
-    fs.writeFileSync(dest, fs.readFileSync(filename))
+    fs.writeFileSync(dest, content)
     #TODO
     #if options.cdn
     url = path.join options.rootURI, name
     config.assets[key] = 
+      filename: filename
       path: dest
       mimetype: mimetype
       url: url
@@ -56,8 +59,25 @@ class Assets
     options.rootURI ?= @rootURI
     @_make(key, filename, options)
 
+  _resolveUrl: (filename, url)->
+    url = url.replace(/url\(|'|"|\)/g, '')
+    url = path.join(path.dirname(filename), url)
+    return @url(url)
+
+
+  _fixCssUrl: (filename, content)->
+    content = content.toString()
+    results = content.match /url\([^\)]+\)/g
+    if results
+      for result in results
+        url = @_resolveUrl(filename, result)
+        if url != ''
+          content = content.replace result, "url('#{url}')"
+    return content
+
   _get: (key)->
     unless config.assets[key]
+      console.info("trying to create on-demand asset '#{key}'") if @log
       @make(key)
     asset = config.assets[key]
     return asset if asset?
