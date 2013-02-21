@@ -13,7 +13,7 @@
     "mocha": "*"
   },
   "scripts": {
-    "test": "mocha --compilers coffee:coffee-script --reporter spec --globals NODE_CONFIG",
+    "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script --reporter spec --globals NODE_CONFIG",
     "clean": "rm -rf ./assets && rm -rf ./public && rm -rf ./config"
   }
 }
