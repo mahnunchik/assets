@@ -14,7 +14,7 @@ describe 'Assets', ()->
   describe '#make()', ()->
 
     it 'single asset without options', ()->
-      a = Assets()
+      a = Assets({log: false})
       file = 'test/fixtures/test.js'
       a.make(file)
       assert.notEqual a.tag(file), null
@@ -22,6 +22,7 @@ describe 'Assets', ()->
 
     it 'single asset with options', ()->
       a = Assets
+        log: false
         assetsDir: 'public'
         rootURI: '/abc/'
       file = 'test/fixtures/test.js'
@@ -31,6 +32,7 @@ describe 'Assets', ()->
 
     it 'multiple assets', ()->
       a = Assets
+        log: false
         assetsDir: 'public'
         rootURI: '/abc/'
       js = 'test/fixtures/test.js'
@@ -68,5 +70,20 @@ describe 'Assets', ()->
       assert.equal a.url(file), '/bootstrap.min-bc0b45d7d2a6c858b157b8c1f0e0c66e.css'
       assert.equal a.url('test/fixtures/bootstrap/img/glyphicons-halflings.png'), '/glyphicons-halflings-2516339970d710819585f90773aebe0a.png'
       assert.equal a.url('test/fixtures/bootstrap/img/glyphicons-halflings-white.png'), '/glyphicons-halflings-white-9bbc6e9602998a385c2ea13df56470fd.png'
+
+  describe '#dir()', ()->
+    it 'should asset directory', ()->
+      a = Assets({log: false})
+      a.dir("test/fixtures/**/*.png")
+      assert.notEqual a.url 'test/fixtures/bootstrap/img/glyphicons-halflings-white.png', null
+      assert.notEqual a.url 'test/fixtures/bootstrap/img/glyphicons-halflings.png', null
+      assert.notEqual a.url 'test/fixtures/glyphicons-halflings-white.png', null
+
+    it 'key should be without baseDir', ()->
+      a = Assets({log: false})
+      a.dir("fixtures/**/*.png", {baseDir: 'test'})
+      assert.notEqual a.url 'fixtures/bootstrap/img/glyphicons-halflings-white.png', null
+      assert.notEqual a.url 'fixtures/bootstrap/img/glyphicons-halflings.png', null
+      assert.notEqual a.url 'fixtures/glyphicons-halflings-white.png', null
 
 

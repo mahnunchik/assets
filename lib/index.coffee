@@ -4,6 +4,7 @@ path = require 'path'
 crypto = require 'crypto'
 mime = require 'mime'
 mkdirp = require 'mkdirp'
+glob = require 'glob'
 _ = require 'underscore'
 
 class Assets
@@ -12,10 +13,10 @@ class Assets
    * @param options.rootURI
    * @param options.log
   ###
-  constructor: (@options={})->
-    @assetsDir = @options.assetsDir || path.join(process.cwd(), 'assets')
-    @rootURI = @options.rootURI || '/'
-    @log = @options.log != false
+  constructor: (options={})->
+    @assetsDir = options.assetsDir || path.join(process.cwd(), 'assets')
+    @rootURI = options.rootURI || '/'
+    @log = options.log != false
     config.setModuleDefaults('assets', {})
     unless fs.existsSync(@assetsDir)
       mkdirp.sync(@assetsDir)
@@ -51,6 +52,7 @@ class Assets
       mimetype: mimetype
       url: url
       timestamp: Date.now()
+    console.info("created asset '#{dest}' for key '#{key}'") if @log
 
   make: (key, filename, options)->
     if _.isObject(key)
@@ -63,6 +65,13 @@ class Assets
     options.assetsDir ?= @assetsDir
     options.rootURI ?= @rootURI
     @_make(key, filename, options)
+
+  dir: (pattern, options={})->
+    files = glob.sync pattern,
+      cwd: options.baseDir
+    for file in files
+      @make(file, path.join(options.baseDir, file), options)
+
 
   _resolveUrl: (filename, url)->
     url = url.replace(/url\(|'|"|\)/g, '')

@@ -3,11 +3,12 @@
   "version": "0.0.2",
   "main": "index.js",
   "dependencies": {
-    "config": "https://github.com/lorenwest/node-config/tarball/v0.4.18",
+    "config": "*",
     "coffee-script": "*",
     "mime": "*",
     "mkdirp": "*",
-    "underscore": "*"
+    "underscore": "*",
+    "glob": "*"
   },
   "devDependencies": {
     "mocha": "*"
