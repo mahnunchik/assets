@@ -69,8 +69,9 @@ class Assets
   dir: (pattern, options={})->
     files = glob.sync pattern,
       cwd: options.baseDir
+    prefix = if options.prefix? then options.prefix else ''
     for file in files
-      @make(file, path.join(options.baseDir, file), options)
+      @make("#{prefix}#{file}", path.join(options.baseDir, file), options)
 
 
   _resolveUrl: (filename, url)->

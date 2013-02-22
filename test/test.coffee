@@ -81,9 +81,9 @@ describe 'Assets', ()->
 
     it 'key should be without baseDir', ()->
       a = Assets({log: false})
-      a.dir("fixtures/**/*.png", {baseDir: 'test'})
-      assert.notEqual a.url 'fixtures/bootstrap/img/glyphicons-halflings-white.png', null
-      assert.notEqual a.url 'fixtures/bootstrap/img/glyphicons-halflings.png', null
-      assert.notEqual a.url 'fixtures/glyphicons-halflings-white.png', null
+      a.dir("fixtures/**/*.png", {baseDir: 'test', prefix: '/'})
+      assert.notEqual a.url '/fixtures/bootstrap/img/glyphicons-halflings-white.png', null
+      assert.notEqual a.url '/fixtures/bootstrap/img/glyphicons-halflings.png', null
+      assert.notEqual a.url '/fixtures/glyphicons-halflings-white.png', null
 
 
