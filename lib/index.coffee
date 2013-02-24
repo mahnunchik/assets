@@ -1,4 +1,3 @@
-config = require 'config'
 fs = require 'fs'
 path = require 'path'
 crypto = require 'crypto'
@@ -6,18 +5,20 @@ mime = require 'mime'
 mkdirp = require 'mkdirp'
 glob = require 'glob'
 _ = require 'underscore'
+Store = require './store/Store'
 
 class Assets
   ###*
    * @param options.assetsDir
    * @param options.rootURI
    * @param options.log
+   * @param options.store
   ###
   constructor: (options={})->
+    @store = options.store || new Store()
     @assetsDir = options.assetsDir || path.join(process.cwd(), 'assets')
     @rootURI = options.rootURI || '/'
     @log = options.log != false
-    config.setModuleDefaults('assets', {})
     unless fs.existsSync(@assetsDir)
       mkdirp.sync(@assetsDir)
 
@@ -46,12 +47,12 @@ class Assets
     #TODO
     #if options.cdn
     url = path.join options.rootURI, name
-    config.assets[key] = 
+    @store.set key, 
       filename: filename
       path: dest
       mimetype: mimetype
       url: url
-      timestamp: Date.now()
+      timestamp: (new Date).toLocaleString()
     console.info("created asset '#{dest}' for key '#{key}'") if @log
 
   make: (key, filename, options)->
@@ -91,10 +92,10 @@ class Assets
     return content
 
   _get: (key)->
-    unless config.assets[key]
+    unless @store.get(key)
       console.info("trying to create on-demand asset '#{key}'") if @log
       @make(key)
-    asset = config.assets[key]
+    asset = @store.get(key)
     return asset if asset?
     console.error("Asset not found, key: '#{key}'") if @log
     return {}
@@ -114,3 +115,6 @@ class Assets
 
 module.exports = (options)->
   return new Assets(options)
+
+module.exports.Store = Store
+module.exports.ConfigStore = require './store/ConfigStore'

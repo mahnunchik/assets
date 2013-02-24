@@ -3,7 +3,6 @@
   "version": "0.0.2",
   "main": "index.js",
   "dependencies": {
-    "config": "*",
     "coffee-script": "*",
     "mime": "*",
     "mkdirp": "*",
@@ -11,6 +10,7 @@
     "glob": "*"
   },
   "devDependencies": {
+    "config": "*",
     "mocha": "*"
   },
   "scripts": {
