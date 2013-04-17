@@ -7,18 +7,31 @@ glob = require 'glob'
 _ = require 'underscore'
 Store = require './store/Store'
 
+# Regex for detecting & adjusting URLs of fingerprinted/compressed assets referred in .css files
+# From https://github.com/icflorescu/aspa/blob/master/lib/aspa.iced#L28
+stylesheetAssetUrlPattern = ///
+  url\(             # url(
+  [\'\"]?           # optional ' or "
+  ([^\?\#\'\"\)]+)  # file                                       -> file
+  ([^\'\"\)]*)      # optional suffix, i.e. #iefix in font URLs  -> suffix
+  [\'\"]?           # optional ' or "
+  \)                # )
+///gi
+
 class Assets
   ###*
    * @param options.assetsDir
    * @param options.rootURI
-   * @param options.log
+   * @param options.logger
    * @param options.store
   ###
   constructor: (options={})->
     @store = options.store || new Store()
     @assetsDir = options.assetsDir || path.join(process.cwd(), 'assets')
     @rootURI = options.rootURI || '/'
-    @log = options.log != false
+    @logger = options.logger
+    unless @logger?
+      @logger = console
     unless fs.existsSync(@assetsDir)
       mkdirp.sync(@assetsDir)
 
@@ -32,7 +45,7 @@ class Assets
     base = path.basename(filename, ext)
     mimetype = options.mimetype || mime.lookup(ext)
     unless fs.existsSync(filename)
-      console.error("File '#{filename}' not exists") if @log
+      @logger.error("File '#{filename}' not exists") if @logger
       return
     content = fs.readFileSync(filename)
     if mimetype == 'text/css'
@@ -47,13 +60,15 @@ class Assets
     #TODO
     #if options.cdn
     url = path.join options.rootURI, name
-    @store.set key, 
+    asset =
       filename: filename
       path: dest
       mimetype: mimetype
       url: url
-      timestamp: (new Date).toLocaleString()
-    console.info("created asset '#{dest}' for key '#{key}'") if @log
+      timestamp: new Date().toString()
+    @store.set key, asset
+    @logger.info("Created asset '#{dest}' for key '#{key}'") if @logger
+    return asset
 
   make: (key, filename, options)->
     if _.isObject(key)
@@ -68,13 +83,15 @@ class Assets
     @_make(key, filename, options)
 
   dir: (pattern, options={})->
-    files = glob.sync pattern,
-      cwd: options.baseDir
+    globOptions = {}
+    globOptions['cwd'] = options.baseDir if options.baseDir?
+    files = glob.sync pattern, globOptions
     prefix = if options.prefix? then options.prefix else ''
     for file in files
-      @make("#{prefix}#{file}", path.join(options.baseDir, file), options)
+      filename = if options.baseDir? then  path.join(options.baseDir, file) else file
+      @make("#{prefix}#{file}", filename, options)
 
-
+  ###
   _resolveUrl: (filename, url)->
     url = url.replace(/url\(|'|"|\)/g, '')
     url = path.join(path.dirname(filename), url)
@@ -90,14 +107,26 @@ class Assets
         if url != ''
           content = content.replace result, "url('#{url}')"
     return content
+  ###
+  _fixCssUrl: (filenameCSS, content)->
+    content = content.toString()
+    content = content.replace stylesheetAssetUrlPattern, (src, file, suffix) =>
+      #filePath = path.resolve sourceFolder, file
+      filePath = path.join(path.dirname(filenameCSS), file)
+      url = @url(filePath)
+      if url != ''
+        "url(\"#{url}#{suffix}\")"
+      else
+        src
+    content
 
   _get: (key)->
     unless @store.get(key)
-      console.info("trying to create on-demand asset '#{key}'") if @log
+      @logger.info("trying to create on-demand asset '#{key}'") if @logeer
       @make(key)
     asset = @store.get(key)
     return asset if asset?
-    console.error("Asset not found, key: '#{key}'") if @log
+    @logger.error("Asset not found, key: '#{key}'") if @loggger
     return {}
 
   url: (key)->
@@ -117,4 +146,4 @@ module.exports = (options)->
   return new Assets(options)
 
 module.exports.Store = Store
-module.exports.ConfigStore = require './store/ConfigStore'
+module.exports.RedisStore = require './store/RedisStore'

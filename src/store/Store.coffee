@@ -11,4 +11,7 @@ class Store
   get: (key)->
     return @assets[key]
 
+  destroy: (key)->
+    delete @assets[key]
+
 module.exports = Store

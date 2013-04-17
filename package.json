@@ -1,19 +1,28 @@
 {
   "name": "assets",
-  "version": "0.0.2",
+  "description": "asset manager for clusters",
+  "version": "0.0.3",
+  "keywords": ["assets", "asset", "cluster"],
   "main": "index.js",
+  "maintainers":[ {
+    "name": "Eugeny Vlasenko",
+    "email": "mahnunchik@gmail.com",
+    "web": "http://about.me/vlasenko"
+  }],
   "dependencies": {
-    "coffee-script": "*",
     "mime": "*",
     "mkdirp": "*",
     "underscore": "*",
-    "glob": "*"
+    "glob": "*",
+    "redis": "*",
+    "hiredis": "*"
   },
   "devDependencies": {
-    "config": "*",
+    "coffee-script": "*",
     "mocha": "*"
   },
   "scripts": {
+    "build": "./node_modules/.bin/coffee -cbo lib/ src/",
     "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script --reporter spec --globals NODE_CONFIG",
     "clean": "rm -rf ./assets && rm -rf ./public && rm -rf ./config"
   }
