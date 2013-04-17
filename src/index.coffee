@@ -91,23 +91,6 @@ class Assets
       filename = if options.baseDir? then  path.join(options.baseDir, file) else file
       @make("#{prefix}#{file}", filename, options)
 
-  ###
-  _resolveUrl: (filename, url)->
-    url = url.replace(/url\(|'|"|\)/g, '')
-    url = path.join(path.dirname(filename), url)
-    return @url(url)
-
-
-  _fixCssUrl: (filename, content)->
-    content = content.toString()
-    results = content.match /url\([^\)]+\)/g
-    if results
-      for result in results
-        url = @_resolveUrl(filename, result)
-        if url != ''
-          content = content.replace result, "url('#{url}')"
-    return content
-  ###
   _fixCssUrl: (filenameCSS, content)->
     content = content.toString()
     content = content.replace stylesheetAssetUrlPattern, (src, file, suffix) =>
