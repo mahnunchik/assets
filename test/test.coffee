@@ -100,7 +100,7 @@ describe 'Assets', ()->
       a = Assets
         logger: logger
         store: store
-      store.on 'ready', ()->
+      store.once 'ready', ()->
         file = 'test/fixtures/test.js'
         asset = a.make(file)
         assert.notEqual a.tag(file), null
@@ -112,7 +112,7 @@ describe 'Assets', ()->
       a = Assets
         logger: logger
         store: store
-      store.on 'ready', ()->
+      store.once 'ready', ()->
         file = 'test/fixtures/test.js'
         rasset = a._get(file)
         assert.notEqual rasset, null
@@ -129,7 +129,7 @@ describe 'Assets', ()->
         assetsDir: 'public'
         rootURI: '/abc/'
         store: store
-      store.on 'ready', ()->
+      store.once 'ready', ()->
         file = 'test/fixtures/test.js'
         a.make(file)
         assert.notEqual a.tag(file), null
@@ -143,7 +143,7 @@ describe 'Assets', ()->
         assetsDir: 'public'
         rootURI: '/abc/'
         store: store
-      store.on 'ready', ()->
+      store.once 'ready', ()->
         js = 'test/fixtures/test.js'
         css = 'test/fixtures/test.css'
         a.make
@@ -163,9 +163,32 @@ describe 'Assets', ()->
       a = Assets
         logger: logger
         store: store
-      store.on 'ready', ()->
+      store.once 'ready', ()->
         assert.equal a.tag('asdfgh'), ''
         assert.equal a.url('qwertyu'), ''
         done()
+
+    it 'publish subscribe updated asset', (done)->
+      @timeout(0)
+      file = 'test/fixtures/test.js'
+      store1 = new Assets.RedisStore(null, null, {key: 'pub_sub_key'})
+      store1.once 'ready', ()->
+        store1.destroy file, ()->
+          a = Assets
+            logger: logger
+            store: store1
+          store2 = new Assets.RedisStore(null, null, {key: 'pub_sub_key', logger: logger})
+          
+          store2.once 'ready', ()->
+            b = Assets
+              logger: logger
+              store: store2
+            store2.once 'ready', ()->
+              assert.notEqual b.store.assets[file], null
+              assert.equal b.store.assets[file].timestamp, a.store.assets[file].timestamp
+              assert.equal b.store.assets[file].url, a.store.assets[file].url
+              done()
+            a.make(file)
+          
 
 
